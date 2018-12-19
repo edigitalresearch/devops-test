@@ -1,0 +1,87 @@
+# Disable SELinux - SELinux prevents pods starting
+- name: Kubernetes | Disable SELINUX for deployment
+  shell: setenforce 0
+  tags:
+    - core
+
+# Ensure SELinux stays disabled between reboots
+- name: Kubernetes | Update SELinux (Disable on Boot)
+  replace:
+    path: /etc/selinux/config
+    regexp: 'SELINUX=enforcing'
+    replace: 'SELINUX=disabled'
+  when: kubernetes.disableselinux == "True"
+  tags:
+    - core
+
+# Add the Kubernetes Yum Repos
+- name: Kubernetes | Add Repos
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes Repos
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: no
+    repo_gpgcheck: no
+  tags:
+    - core
+
+- name: Kubernetes | Add Docker Repos
+  get_url:
+      url: https://download.docker.com/linux/centos/docker-ce.repo
+      dest: /etc/yum.repos.d/docer-ce.repo
+  tags:
+    - core
+
+# # Get Docker Script
+# - name: Kubernetes | Get Docker Script
+#   get_url:
+#     url: https://get.docker.com/
+#     dest: /tmp/get_docker.sh
+#     mode: 0755
+
+# # Install Docker
+# - name: Kubernetes | Install Docker
+#   shell: /tmp/get_docker.sh
+#   tags:
+#     - core
+
+# Install Kubernetes Packages
+- name: Kubernetes | Install Kubernetes Packages
+  yum:
+    name: "{{ kubernetes.packages }}"
+    state: present
+  tags:
+    - core
+
+# Enable and start kube services
+- name: Kubernetes | Enable Services
+  systemd:
+    state: started
+    enabled: True
+    name: "{{ item }}"
+  with_items:
+    - docker
+    - kubelet
+  tags:
+    - core
+
+# Create kube directories
+- name: Kubernetes | Create Kube Directory
+  file:
+    path: ~/.kube
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+  tags:
+    - core
+
+# Allow bridged pod comms
+- name: Kubernetes | Set IPTables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  tags:
+    - core

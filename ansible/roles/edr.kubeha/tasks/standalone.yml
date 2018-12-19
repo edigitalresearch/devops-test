@@ -1,0 +1,33 @@
+---
+  # Install core K8s components on all nodes
+  - name: Kubernetes | Common Tasks
+    include_tasks: common.yml
+    tags:
+      - core
+
+  # Initialise single master cluster
+  - name: Kubernetes | Initalise Cluster
+    command: kubeadm --apiserver-advertise-address="{{ kubernetes.networking.advertiseAddress }}" init --pod-network-cidr="{{ kubernetes.networking.podCidr }}"
+    tags:
+      - cluster
+    when: "'root_cluster' in group_names"
+
+  # Deploy all worker nodes
+  - name: Kubernetes | Join Worker Nodes
+    include_tasks: join-node.yml
+    tags:
+      - scale
+
+  # Configure kubectl
+  - name: Kubernetes | Copy kubectl configuration
+    command: cp /etc/kubernetes/admin.conf ~/.kube/config
+    tags:
+      - cluster
+    when: "'root_cluster' in group_names"
+
+  # Finally deploy pod network
+  - name: Kubernetes | Deploy Pod Network
+    command: "kubectl apply -f {{ kubernetes.networking.podManifest }}"
+    when: "'root_cluster' in group_names"
+    tags:
+      - cluster

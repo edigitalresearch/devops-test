@@ -1,0 +1,22 @@
+  - name: Kubernetes | Write Third Cluster Config
+    template:
+      src: kubeadm-config-third.yml.j2
+      dest: /etc/kubernetes/kubeadm-config-third.yml
+      owner: root
+      group: root
+      mode: 0644
+    tags:
+      - cluster
+
+  - name: Kubernetes | Export Certs
+    include_tasks: certs.yml
+    tags:
+      - cluster
+
+  - name: Kubernetes | Create Master
+    include_tasks: mark-master.yml
+    vars:
+      kubernetes:
+        configfile: /etc/kubernetes/kubeadm-config-third.yml
+    tags:
+      - cluster

@@ -1,0 +1,4 @@
+- name: apache
+  hosts: apache
+  roles:
+    - edr.apache
