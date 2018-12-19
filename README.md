@@ -1,2 +1,0 @@
-# devops-test
-devops-test

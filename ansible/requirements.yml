@@ -1,5 +1,5 @@
 ---
-- src: git@github.com:edigitalresearch/kube-ha-ansible.git
+- src: git@github.com:edigitalresearch/broken-apache-role.git 
   scm: git
   version: master
-  name: edr.kubeha
+  name: edr.apache
