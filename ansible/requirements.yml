@@ -1,5 +1,5 @@
 ---
-- src: git@github.com:edigitalresearch/broken-apache-role.git 
+- src: git@github.com:edigitalresearch/broken-apache-role.git
   scm: git
   version: master
   name: edr.apache
